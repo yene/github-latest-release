@@ -1,4 +1,7 @@
 <?php
+
+require_once("credentials.php");
+
 if (isset($_GET["q"]) && !empty($_GET["q"])) {
   $apiURL = "https://api.github.com/repos/" . $_GET["q"] . "/releases/latest";
 
