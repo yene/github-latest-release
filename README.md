@@ -1,6 +1,5 @@
-# github-302
+# GitHub Latest Release
 Redirect to the latest released binary.
 
-## Todo
-* remove leading slash and ending slash
-* let user paste github url
+## Note
+If a release has multiple assets, it will link to the first match.

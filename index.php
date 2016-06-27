@@ -1,21 +1,36 @@
 <?php
 
+$allowedExtensions = ["zip", "dmg", "tar.gz", "pkg", "xip", "exe", "app"];
+
 require_once("credentials.php");
 
 if (isset($_GET["q"]) && !empty($_GET["q"])) {
-  $apiURL = "https://api.github.com/repos/" . $_GET["q"] . "/releases/latest";
+  $query = $_GET["q"];
+  $query = str_replace("https://github.com/", "", $query);
+  $query = trim($query, '/');
+  $apiURL = "https://api.github.com/repos/" . $query . "/releases/latest";
+  $apiURL .= "?client_id=" . $client_id . "&client_secret=" . $client_secret;
 
   $apiResult = curl_get_file_contents($apiURL);
   $json = json_decode($apiResult, true);
 
   if (count($json["assets"]) == 1) {
     $downloadURL = $json["assets"][0]["browser_download_url"];
-
     header("Location: " . $downloadURL);
     die();
+  } else if (count($json["assets"]) > 1) {
+    foreach ($json["assets"] as $key => $value) {
+      $ext = pathinfo($value["browser_download_url"], PATHINFO_EXTENSION);
+      if (in_array($ext, $allowedExtensions)) {
+        header("Location: " . $value["browser_download_url"]);
+        die();
+      }
+    }
+    http_response_code(404);
+    die("Error: No binary release found.");
   } else {
     http_response_code(404);
-    die("Error: no release found");
+    die("Error: No binary release found.");
   }
 }
 
@@ -40,14 +55,14 @@ function curl_get_file_contents($URL) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GitHub release redirect</title>
+  <title>GitHub Latest Release</title>
   <link rel="stylesheet" type="text/css" href="tacit.min.css"/>
   </style>
 </head>
 <body>
   <section>
     <article>
-      <h1>Github 302</h1>
+      <h1>GitHub Latest Release</h1>
       <form method="get" action="">
         <fieldset>
           <label for="q">Enter a github repo and get redirected to the latest binary release:</label>
